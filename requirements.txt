@@ -4,6 +4,6 @@ pydub
 transformers
 boto3
 assemblyai
-
+bedrock_runtime
 
 

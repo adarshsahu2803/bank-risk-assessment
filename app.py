@@ -1,32 +1,31 @@
 import streamlit as st
 import pandas as pd
-from pydub import AudioSegment
 import io
 import tempfile
 import os
-from transformers import pipeline
 import assemblyai as aai
+import json
+import boto3
+from collections import deque
+from pydub import AudioSegment
+from transformers import pipeline
 
 st.set_page_config(layout="wide",)
 
+access_key = os.getenv('ACCESS_KEY_ID')
+secret_access_key = os.getenv('SECRET_ACCESS_KEY')
+region_name = os.getenv('DEFAULT_REGION')
+
+bedrock_runtime = boto3.client(service_name='bedrock-runtime', aws_access_key_id=access_key,aws_secret_access_key=secret_access_key, region_name=region_name)
+
 # Initialize the DataFrame with a dummy entry
-df = pd.DataFrame([
-    {
-        'Category': 'Cybersecurity',
-        'Issue/Risk': 'Data Breach',
-        'Risk Description': 'Unauthorized access to sensitive customer information',
-        'Potential Impact [1-5]': 4,
-        'Likelihood [1-5]': 3,
-        'Risk Ranking': 'High',
-        'Primary Point of Contact': 'John Doe (IT Security Manager)',
-        'Description of Monitoring': 'Regular security audits and penetration testing',
-        'Comment': 'Implement additional encryption and access controls'
-    }
-], columns=[
+df = pd.DataFrame(columns=[
     'Category', 'Issue/Risk', 'Risk Description', 'Potential Impact [1-5]',
     'Likelihood [1-5]', 'Risk Ranking', 'Primary Point of Contact',
     'Description of Monitoring', 'Comment'
 ])
+
+st.session_state['dataframe'] = df
 
 # Function to transcribe audio
 def transcribe_audio(audio_file):
@@ -39,19 +38,48 @@ def transcribe_audio(audio_file):
 
 # Function to extract Q&A from transcript
 def extract_qa(transcript):
-    qa_pipeline = pipeline("question-generation")
-    questions = qa_pipeline(transcript)
-    qa_pairs = []
-    for q in questions[:5]:  # Limit to 5 questions
-        answer = pipeline("question-answering")(question=q['question'], context=transcript)
-        qa_pairs.append((q['question'], answer['answer']))
-    return qa_pairs
+    prompt = (
+        "You are a trade compliance analyst. Based on the given conversation transcript, generate 5-6 important question-answer pairs."
+        "Each pair should focus on key information, motives for trade execution, or significant points from the conversation."
+        "Format your response as follows:"
+        "Q1: [Question 1]\n\n"
+        "A1: [Answer 1]\n"
+        "\n"
+        "Q2: [Question 2]\n\n"
+        "A2: [Answer 2]\n"
+        "\n"
+        "Q3: [Question 3]\n\n"
+        "A3: [Answer 3]\n"
+        "\n"
+        "... and so on."
+        "Ensure that the questions and answers are directly based on the content of the conversation, without drawing external conclusions."
+        "Also make sure these que-ans pairs are informative and professional. Directly start your response with Q1:..."
+        "Here is the conversation text:\n\n"
+        f"{transcript}\n\n"
+        "Question-Answer Pairs:"
+    )
+    request_body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1000,
+        "temperature": 0.7,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    })
+    response = bedrock_runtime.invoke_model(
+        modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
+        body=request_body,
+    )
+    response_body = json.loads(response['body'].read())
+    generated_text = response_body['content'][0]['text']
+    
+    return generated_text
 
 # Streamlit app
 st.title("Risk Management and Voice Transcription App")
 
 # Display the DataFrame
-st.dataframe(df)
+st.dataframe(st.session_state['dataframe'])
 
 # Create two columns
 col1, colm, col2 = st.columns([2,0.2,2])
@@ -74,45 +102,18 @@ with col1:
         # Remove the temporary file
         os.unlink(tmp_file_path)
 
+        # generate_df_entry(transcript)
+
 with col2:
     st.header("Important Q&A")
     if uploaded_file is not None:
-        qa_pairs = extract_qa(transcript)
-        for i, (question, answer) in enumerate(qa_pairs, 1):
-            st.subheader(f"Q{i}: {question}")
-            st.write(f"A: {answer}")
+        # st.write(extract_qa(transcript))
+        qa_pair = extract_qa(transcript)
+        splits = qa_pair.split('\n')
+        for message in splits:
+            if message.startswith("Q"):
+                st.chat_message("ai").write(message[3:])
+            elif message.startswith("A"):
+                st.chat_message("human").write(message[3:])
 
 
-
-# This Streamlit application does the following:
-
-# 1. Displays a DataFrame at the top with the specified columns.
-# 2. Divides the page into two columns.
-# 3. In the left column:
-#    - Allows the user to upload an audio file.
-#    - Transcribes the uploaded audio file and displays the transcript.
-# 4. In the right column:
-#    - Extracts 4-5 important question-answer pairs from the transcript and displays them.
-
-# To run this application, you'll need to install the required libraries:
-
-# ```
-# pip install streamlit pandas speechrecognition pydub transformers torch
-# ```
-
-# You may also need to install ffmpeg for audio processing:
-
-# ```
-# apt-get install ffmpeg
-# ```
-
-# To run the Streamlit app, save the code in a file (e.g., `app.py`) and run:
-
-# ```
-# streamlit run app.py
-# ```
-
-# Note: The question-answering and question-generation models used in this example are basic implementations. For a production environment, you might want to use more sophisticated models or APIs for better results.
-
-# Also, be aware that the transcription and Q&A extraction might take some time, especially for longer audio files. You may want to add progress indicators or optimize these processes for a better user experience.
-    
