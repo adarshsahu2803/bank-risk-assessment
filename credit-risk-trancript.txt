@@ -1,0 +1,73 @@
+Teller: Good morning! Welcome to First National Bank. How may I assist you today?
+
+Consumer: Hi there. I saw your ad for a new credit card, and I'm interested in applying.
+
+Teller: That's great! I'd be happy to help you with that. May I have your name, please?
+
+Consumer: Sure, it's John Smith.
+
+Teller: Thank you, Mr. Smith. Before we begin, do you have an existing account with us?
+
+Consumer: No, I don't. I've been meaning to open one, but I haven't gotten around to it yet.
+
+Teller: No problem at all. We can certainly discuss our credit card options. What particularly interests you about our offer?
+
+Consumer: Well, to be honest, I'm in a bit of a tight spot financially, and I could really use some extra spending power right now.
+
+Teller: I see. Well, our credit cards do offer flexibility in managing expenses. Can you tell me a bit about your current employment situation?
+
+Consumer: Oh, uh, I'm between jobs at the moment. But I'm sure something will come up soon.
+
+Teller: I understand. How long have you been looking for work?
+
+Consumer: It's been about six months now. But I've got some promising leads!
+
+Teller: That's good to hear. In the meantime, how have you been managing your expenses?
+
+Consumer: Well, I've been relying on my other credit cards quite a bit. I was hoping to get this new one to help spread things out a bit, you know?
+
+Teller: I see. And how many credit cards do you currently have?
+
+Consumer: Let's see... I think it's five or six. I'd have to check to be sure.
+
+Teller: Alright. And are you able to keep up with the minimum payments on those cards?
+
+Consumer: Most of the time, yeah. Sometimes I might be a little late, but I always catch up eventually.
+
+Teller: I appreciate your honesty, Mr. Smith. Now, regarding our credit card offer, there are a few options available. What kind of credit limit were you hoping for?
+
+Consumer: Well, the bigger, the better, right? I was thinking maybe $10,000 or so?
+
+Teller: I see. That would depend on several factors, including income and credit history. Speaking of which, do you have an estimate of your credit score?
+
+Consumer: Oh, I'm not really sure. I haven't checked it in a while. Is that important?
+
+Teller: It can be, yes. It helps us determine the best product for your needs. Have you considered a secured credit card instead?
+
+Consumer: Secured? What's that?
+
+Teller: A secured credit card requires a cash deposit, which then becomes your credit limit. It can be a good option for building or rebuilding credit.
+
+Consumer: Oh, I don't know about that. I don't really have any cash to put down right now.
+
+Teller: I understand. Well, Mr. Smith, let me provide you with some information about our various credit card options. This brochure outlines the features and requirements for each.
+
+Consumer: Thanks. So, can I apply today?
+
+Teller: You're welcome to submit an application, but I want to be transparent that approval isn't guaranteed. The bank will need to review your financial situation carefully.
+
+Consumer: Oh, okay. How long does that usually take?
+
+Teller: It typically takes 7-10 business days. In the meantime, have you considered speaking with one of our financial advisors? They might be able to offer some guidance on managing your current situation.
+
+Consumer: I don't know... I was really hoping to get approved today. Are you sure you can't just sign me up now?
+
+Teller: I'm afraid I don't have the authority to approve applications on the spot. The review process is necessary to ensure we're offering the right products to our customers.
+
+Consumer: I see. Well, I guess I'll take the application and think about it.
+
+Teller: That sounds like a good idea, Mr. Smith. Please don't hesitate to come back if you have any questions. We're here to help.
+
+Consumer: Alright, thanks for your time.
+
+Teller: You're welcome, Mr. Smith. Have a great day!

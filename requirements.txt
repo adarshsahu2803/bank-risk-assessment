@@ -2,8 +2,8 @@ streamlit
 pandas
 pydub
 transformers
-
-
+boto3
+assemblyai
 
 
 
