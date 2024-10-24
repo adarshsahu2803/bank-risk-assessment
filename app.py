@@ -18,14 +18,14 @@ region_name = os.getenv('DEFAULT_REGION')
 
 bedrock_runtime = boto3.client(service_name='bedrock-runtime', aws_access_key_id=access_key,aws_secret_access_key=secret_access_key, region_name=region_name)
 
-# Initialize the DataFrame with a dummy entry
-df = pd.DataFrame(columns=[
-    'Category', 'Issue/Risk', 'Risk Description', 'Potential Impact [1-5]',
-    'Likelihood [1-5]', 'Risk Ranking', 'Primary Point of Contact',
-    'Description of Monitoring', 'Comment'
-])
+if 'dataframe' not in st.session_state:
+    st.session_state['dataframe'] = pd.DataFrame(columns=[
+        'Category', 'Issue/Risk', 'Risk Description', 'Potential Impact [1-5]',
+        'Likelihood [1-5]', 'Risk Ranking', 'Primary Point of Contact',
+        'Description of Monitoring', 'Comment'
+    ])
 
-st.session_state['dataframe'] = df
+st.session_state['counter'] = 0
 
 # Function to transcribe audio
 def transcribe_audio(audio_file):
@@ -39,7 +39,7 @@ def transcribe_audio(audio_file):
 # Function to extract Q&A from transcript
 def extract_qa(transcript):
     prompt = (
-        "You are a trade compliance analyst. Based on the given conversation transcript, generate 5-6 important question-answer pairs."
+        "You are a trade compliance analyst. Based on the given conversation transcript, generate 7 important question-answer pairs."
         "Each pair should focus on key information, motives for trade execution, or significant points from the conversation."
         "Format your response as follows:"
         "Q1: [Question 1]\n\n"
@@ -75,11 +75,59 @@ def extract_qa(transcript):
     
     return generated_text
 
-# Streamlit app
-st.title("Risk Management and Voice Transcription App")
+def generate_df_entry(transcript):
+    prompt = (
+        "You are a trade compliance analyst. Based on the given conversation transcript, generate a dictionary that can be used as a dataframe entry for the following dataframe structure:"
+         """
+        df = pd.DataFrame(columns=[
+            'Category', 'Issue/Risk', 'Risk Description', 'Potential Impact [1-5]',
+            'Likelihood [1-5]', 'Risk Ranking', 'Primary Point of Contact',
+            'Description of Monitoring', 'Comment'
+        ])
+        """
+        "Ensure the entry is professional and follows this exact format:"
+        """
+        {
+            'Category': '',
+            'Issue/Risk': '',
+            'Risk Description': '',
+            'Potential Impact [1-5]': 0,
+            'Likelihood [1-5]': 0,
+            'Risk Ranking': '',
+            'Primary Point of Contact': '',
+            'Description of Monitoring': '',
+            'Comment': ''
+        }
+        """
+         "Your response should be only this dictionary, without any additional text or explanations."
+        "Use integer values for 'Potential Impact [1-5]' and 'Likelihood [1-5]'."
+        "Here is the conversation transcript to analyze:\n\n"
+        f"{transcript}\n\n"
+    )
 
-# Display the DataFrame
-st.dataframe(st.session_state['dataframe'])
+    request_body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1000,
+        "temperature": 0.7,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    })
+
+    response = bedrock_runtime.invoke_model(
+        modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
+        body=request_body,
+    )
+    response_body = json.loads(response['body'].read())
+    generated_text = response_body['content'][0]['text']
+
+    return generated_text
+
+# Streamlit app
+st.title("Bank Risk Assessment App")
+
+# if 'dataframe' in st.session_state:
+#     st.write(st.session_state['dataframe'])
 
 # Create two columns
 col1, colm, col2 = st.columns([2,0.2,2])
@@ -102,12 +150,9 @@ with col1:
         # Remove the temporary file
         os.unlink(tmp_file_path)
 
-        # generate_df_entry(transcript)
-
 with col2:
     st.header("Important Q&A")
     if uploaded_file is not None:
-        # st.write(extract_qa(transcript))
         qa_pair = extract_qa(transcript)
         splits = qa_pair.split('\n')
         for message in splits:
@@ -117,3 +162,8 @@ with col2:
                 st.chat_message("human").write(message[3:])
 
 
+if uploaded_file is not None:
+    entry = generate_df_entry(transcript)
+    new_entry = eval(entry)  # Convert the string response to a dictionary
+    new_df = pd.concat([st.session_state['dataframe'], pd.DataFrame([new_entry])], ignore_index=True)        
+    st.write(pd.DataFrame(new_df))
